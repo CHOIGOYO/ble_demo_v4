@@ -1,3 +1,4 @@
+import 'package:ble_demo_v4/provider/connected_dev_prov.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +14,7 @@ class BaseAppbar extends ConsumerStatefulWidget {
 class _BaseAppbarState extends ConsumerState<BaseAppbar> {
   @override
   Widget build(BuildContext context) {
+    bool isHome = widget.title != 'BLE DEMO V4';
     return Container(
       margin: EdgeInsets.only(top: 24),
       decoration: BoxDecoration(
@@ -24,20 +26,23 @@ class _BaseAppbarState extends ConsumerState<BaseAppbar> {
         ),
       ),
       child: Row(
-        mainAxisAlignment: widget.title != 'BLE DEMO V4'
-            ? MainAxisAlignment.spaceBetween
-            : MainAxisAlignment.center,
+        mainAxisAlignment:
+            isHome ? MainAxisAlignment.spaceBetween : MainAxisAlignment.center,
         children: [
-          if (widget.title != 'BLE DEMO V4')
+          if (isHome)
             IconButton(
               iconSize: 20,
               icon: Icon(Icons.arrow_back),
               onPressed: () {
+                ref.read(connectedDevProvProvider)?.device.disconnect();
                 context.pop();
               },
             ),
           Spacer(),
-          Text(widget.title, style: TextStyle(fontSize: 16, height: 3)),
+          Container(
+              margin: EdgeInsets.only(right: isHome ? 35 : 0),
+              child: Text(widget.title,
+                  style: TextStyle(fontSize: 16, height: 3))),
           Spacer(),
         ],
       ),

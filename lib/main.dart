@@ -29,8 +29,8 @@ class _MyAppState extends ConsumerState<MyApp> {
       routeInformationProvider: router.routeInformationProvider,
       title: 'BLE DEMO V4',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+          primarySwatch: Colors.blue,
+          buttonTheme: ButtonThemeData(buttonColor: Colors.blue)),
     );
   }
 }
