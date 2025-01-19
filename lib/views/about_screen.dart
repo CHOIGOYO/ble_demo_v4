@@ -23,31 +23,60 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
 
     if (connectedDev != null) {
       try {
-        // 서비스 검색
+        // BLE 서비스 검색
         var services = await connectedDev.device.discoverServices();
-        // debugPrint('Services: $services', wrapWidth: 1024);
-        debugPrint('Services: $services');
+        debugPrint('+++Discovered Services: $services');
+
         for (var service in services) {
           for (var characteristic in service.characteristics) {
-            // notify 또는 indicate 가능한 특성 찾기
+            // Notify 또는 Indicate 가능한 특성 찾기
             if (characteristic.properties.notify ||
                 characteristic.properties.indicate) {
               debugPrint(
-                  'Subscribing to characteristic: ${characteristic.uuid} from service: ${service.uuid}');
-              // 특성 구독
-              await characteristic.setNotifyValue(true);
-              // 데이터 수신 및 출력
-              characteristic.lastValueStream.listen((value) {
-                debugPrint('Received data from ${characteristic.uuid}: $value');
-                String decodedValue = String.fromCharCodes(value);
-                debugPrint('Decoded data: $decodedValue');
-              });
+                  '+++Found characteristic: ${characteristic.uuid} in service: ${service.uuid}');
+
+              // 이미 Notify 설정 여부 확인
+              if (!characteristic.isNotifying) {
+                try {
+                  // 디스크립터 설정 (Notify 활성화 전에 설정 필요)
+                  for (var descriptor in characteristic.descriptors) {
+                    if (descriptor.uuid.toString() ==
+                        '00002902-0000-1000-8000-00805f9b34fb') {
+                      await descriptor.write([0x01, 0x00]);
+                      debugPrint(
+                          '+++Descriptor ${descriptor.uuid} written with [0x01, 0x00]');
+                    }
+                  }
+
+                  // Notify 활성화
+                  await characteristic.setNotifyValue(true);
+
+                  // 데이터 수신
+                  characteristic.lastValueStream.listen((value) {
+                    debugPrint(
+                        '+++Raw data from ${characteristic.uuid}: $value');
+                    String decodedValue = String.fromCharCodes(value);
+                    debugPrint('+++Decoded data: $decodedValue');
+                  });
+                } catch (e) {
+                  debugPrint(
+                      '+++Error setting Notify for characteristic ${characteristic.uuid}: $e');
+                }
+              } else {
+                debugPrint(
+                    '+++Characteristic ${characteristic.uuid} is already notifying.');
+              }
+            } else {
+              debugPrint(
+                  '+++Characteristic ${characteristic.uuid} does not support Notify or Indicate.');
             }
           }
         }
       } catch (e) {
-        debugPrint('Error discovering services or subscribing: $e');
+        debugPrint('+++Error discovering services or subscribing: $e');
       }
+    } else {
+      debugPrint('+++No connected device found.');
     }
   }
 
@@ -66,8 +95,8 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                   'ConnectionState: ${connectedDev?.device.isConnected == true ? 'Connected' : 'Disconnected'}'),
               Text('MAC: ${connectedDev?.device.remoteId ?? 'unknown'}'),
               Container(
-                margin: EdgeInsets.only(top: 24),
-                child: Text('Read Data'),
+                margin: const EdgeInsets.only(top: 24),
+                child: const Text('Read Data'),
               ),
               Container(
                 height: 200,
@@ -78,8 +107,8 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                   ),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: EdgeInsets.all(16),
-                child: Text('1234'),
+                padding: const EdgeInsets.all(16),
+                child: const Text('1234'),
               ),
             ],
           ),
