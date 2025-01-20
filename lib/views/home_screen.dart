@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ble_demo_v4/provider/connected_dev_prov.dart';
 import 'package:ble_demo_v4/provider/scan_result_prov.dart';
 import 'package:ble_demo_v4/utils/extra.dart';
@@ -18,6 +20,28 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 // 홈 화면
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  BluetoothAdapterState _adapterState = BluetoothAdapterState.unknown;
+
+  late StreamSubscription<BluetoothAdapterState> _adapterStateStateSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _adapterStateStateSubscription =
+        FlutterBluePlus.adapterState.listen((state) {
+      _adapterState = state;
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _adapterStateStateSubscription.cancel();
+    super.dispose();
+  }
+
   void onConnectPressed(BluetoothDevice device, int index) {
     device.connectAndUpdateStream().catchError((e) {
       Snackbar.show(ABC.c, prettyException("Connect Error:", e),

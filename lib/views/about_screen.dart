@@ -1,8 +1,14 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:ble_demo_v4/provider/connected_dev_prov.dart';
 import 'package:ble_demo_v4/widgets/base_appbar.dart';
 import 'package:ble_demo_v4/widgets/base_layout.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../utils/snackbar.dart';
 
 class AboutScreen extends ConsumerStatefulWidget {
   const AboutScreen({super.key});
@@ -12,10 +18,49 @@ class AboutScreen extends ConsumerStatefulWidget {
 }
 
 class _AboutScreenState extends ConsumerState<AboutScreen> {
+  late BluetoothCharacteristic c;
+  AsciiDecoder asciiDecoder = AsciiDecoder();
+  List<int> _value = [];
+  final List<String> _decodedValue = [];
+  StreamSubscription<List<int>>? _lastValueSubscription;
+
   @override
   void initState() {
     super.initState();
     _readAndSubscribeCharacteristics();
+  }
+
+  @override
+  void dispose() {
+    _lastValueSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future onSubscribe() async {
+    try {
+      String op = c.isNotifying == false ? "Subscribe" : "Unsubscribe";
+      await c.setNotifyValue(true);
+      Snackbar.show(ABC.c, "$op : Success", success: true);
+      if (c.properties.read) {
+        await c.read();
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      Snackbar.show(ABC.c, prettyException("Subscribe Error:", e),
+          success: false);
+    }
+  }
+
+  String decodeBarcodeData(List<int> data) {
+    // 바이트 배열을 문자열로 변환
+    String decodedString = String.fromCharCodes(data);
+
+    // 특수문자 제거 (\r 제거)
+    String cleanedString = decodedString.trim();
+
+    return cleanedString;
   }
 
   Future<void> _readAndSubscribeCharacteristics() async {
@@ -25,53 +70,31 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
       try {
         // BLE 서비스 검색
         var services = await connectedDev.device.discoverServices();
-        debugPrint('+++Discovered Services: $services');
 
+        // 마지막 characteristic을 찾는 반복문
         for (var service in services) {
           for (var characteristic in service.characteristics) {
-            // Notify 또는 Indicate 가능한 특성 찾기
             if (characteristic.properties.notify ||
                 characteristic.properties.indicate) {
-              debugPrint(
-                  '+++Found characteristic: ${characteristic.uuid} in service: ${service.uuid}');
-
-              // 이미 Notify 설정 여부 확인
-              if (!characteristic.isNotifying) {
-                try {
-                  // 디스크립터 설정 (Notify 활성화 전에 설정 필요)
-                  for (var descriptor in characteristic.descriptors) {
-                    if (descriptor.uuid.toString() ==
-                        '00002902-0000-1000-8000-00805f9b34fb') {
-                      await descriptor.write([0x01, 0x00]);
-                      debugPrint(
-                          '+++Descriptor ${descriptor.uuid} written with [0x01, 0x00]');
-                    }
-                  }
-
-                  // Notify 활성화
-                  await characteristic.setNotifyValue(true);
-
-                  // 데이터 수신
-                  characteristic.lastValueStream.listen((value) {
-                    debugPrint(
-                        '+++Raw data from ${characteristic.uuid}: $value');
-                    String decodedValue = String.fromCharCodes(value);
-                    debugPrint('+++Decoded data: $decodedValue');
-                  });
-                } catch (e) {
-                  debugPrint(
-                      '+++Error setting Notify for characteristic ${characteristic.uuid}: $e');
-                }
-              } else {
-                debugPrint(
-                    '+++Characteristic ${characteristic.uuid} is already notifying.');
-              }
-            } else {
-              debugPrint(
-                  '+++Characteristic ${characteristic.uuid} does not support Notify or Indicate.');
+              c = characteristic;
             }
           }
         }
+
+        _lastValueSubscription = c.lastValueStream.listen((value) {
+          _value = value;
+
+          // Null 문자(\x00) 제거
+          String sanitizedData =
+              decodeBarcodeData(_value).replaceAll('\x00', '').trim();
+          if (sanitizedData.isNotEmpty) {
+            _decodedValue.add(decodeBarcodeData(_value));
+          }
+          if (mounted) {
+            onSubscribe();
+            setState(() {});
+          }
+        });
       } catch (e) {
         debugPrint('+++Error discovering services or subscribing: $e');
       }
@@ -99,7 +122,8 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                 child: const Text('Read Data'),
               ),
               Container(
-                height: 200,
+                margin: const EdgeInsets.only(bottom: 8),
+                height: 400,
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: Colors.grey,
@@ -108,8 +132,18 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 padding: const EdgeInsets.all(16),
-                child: const Text('1234'),
+                child: SingleChildScrollView(
+                    child: Text(
+                  _decodedValue.join(' '),
+                  overflow: TextOverflow.clip,
+                )),
               ),
+              ElevatedButton(
+                  onPressed: () {
+                    _decodedValue.clear();
+                    setState(() {});
+                  },
+                  child: const Text('Clear')),
             ],
           ),
         ],
