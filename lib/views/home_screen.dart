@@ -79,6 +79,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     itemBuilder: (context, index) {
                       return InkWell(
                         onTap: () {
+                          FlutterBluePlus.stopScan();
                           onConnectPressed(
                               ref.watch(scanResultProvProvider)[index].device,
                               index);
@@ -94,7 +95,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 .device
                                 .platformName),
                             subtitle: Text(
-                                'MAC : ${ref.watch(scanResultProvProvider)[index].device.remoteId}'),
+                                'Device RemoteId : ${ref.watch(scanResultProvProvider)[index].device.remoteId}'),
                             trailing: Text(
                                 'RSSI : ${ref.watch(scanResultProvProvider)[index].rssi}'),
                           ),

@@ -33,9 +33,15 @@ class _BaseAppbarState extends ConsumerState<BaseAppbar> {
             IconButton(
               iconSize: 20,
               icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                ref.read(connectedDevProvProvider)?.device.disconnect();
-                context.pop();
+              onPressed: () async {
+                await ref
+                    .read(connectedDevProvProvider)!
+                    .device
+                    .disconnect()
+                    .then((_) {
+                  ref.read(connectedDevProvProvider.notifier).clear();
+                  context.pop();
+                });
               },
             ),
           Spacer(),

@@ -23,6 +23,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
   List<int> _value = [];
   final List<String> _decodedValue = [];
   StreamSubscription<List<int>>? _lastValueSubscription;
+  final int _counter = 0;
 
   @override
   void initState() {
@@ -65,12 +66,10 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
 
   Future<void> _readAndSubscribeCharacteristics() async {
     final connectedDev = ref.read(connectedDevProvProvider);
-
     if (connectedDev != null) {
       try {
         // BLE 서비스 검색
         var services = await connectedDev.device.discoverServices();
-
         // 마지막 characteristic을 찾는 반복문
         for (var service in services) {
           for (var characteristic in service.characteristics) {
@@ -80,10 +79,8 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
             }
           }
         }
-
         _lastValueSubscription = c.lastValueStream.listen((value) {
           _value = value;
-
           // Null 문자(\x00) 제거
           String sanitizedData =
               decodeBarcodeData(_value).replaceAll('\x00', '').trim();
@@ -106,47 +103,50 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
   @override
   Widget build(BuildContext context) {
     final connectedDev = ref.watch(connectedDevProvProvider);
-
-    return BaseLayout(
-      child: Column(
-        children: [
-          BaseAppbar(title: connectedDev?.device.platformName ?? 'unknown'),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                  'ConnectionState: ${connectedDev?.device.isConnected == true ? 'Connected' : 'Disconnected'}'),
-              Text('MAC: ${connectedDev?.device.remoteId ?? 'unknown'}'),
-              Container(
-                margin: const EdgeInsets.only(top: 24),
-                child: const Text('Read Data'),
-              ),
-              Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                height: 400,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.grey,
-                    width: 1,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
+    return PopScope(
+      canPop: false,
+      child: BaseLayout(
+        child: Column(
+          children: [
+            BaseAppbar(title: connectedDev?.device.platformName ?? 'unknown'),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                    'ConnectionState: ${connectedDev?.device.isConnected == true ? 'Connected' : 'Disconnected'}'),
+                Text(
+                    'Device RemoteId: ${connectedDev?.device.remoteId ?? 'unknown'}'),
+                Container(
+                  margin: const EdgeInsets.only(top: 24),
+                  child: const Text('Read Data'),
                 ),
-                padding: const EdgeInsets.all(16),
-                child: SingleChildScrollView(
-                    child: Text(
-                  _decodedValue.join(' '),
-                  overflow: TextOverflow.clip,
-                )),
-              ),
-              ElevatedButton(
-                  onPressed: () {
-                    _decodedValue.clear();
-                    setState(() {});
-                  },
-                  child: const Text('Clear')),
-            ],
-          ),
-        ],
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  height: 400,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.grey,
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: SingleChildScrollView(
+                      child: Text(
+                    _decodedValue.join(' '),
+                    overflow: TextOverflow.clip,
+                  )),
+                ),
+                ElevatedButton(
+                    onPressed: () {
+                      _decodedValue.clear();
+                      setState(() {});
+                    },
+                    child: const Text('Clear')),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

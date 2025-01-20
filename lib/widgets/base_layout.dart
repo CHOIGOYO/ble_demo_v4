@@ -73,32 +73,34 @@ class _BaseLayoutState extends ConsumerState<BaseLayout> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: Colors.white,
-        body: SingleChildScrollView(
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: widget.child,
+    return SafeArea(
+      child: Scaffold(
+          backgroundColor: Colors.white,
+          body: SingleChildScrollView(
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: widget.child,
+              ),
             ),
           ),
-        ),
-        floatingActionButton: widget.isHome
-            ? FloatingActionButton(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.lightBlue,
-                onPressed: () {
-                  if (_isScanning) {
-                    FlutterBluePlus.stopScan();
-                  } else {
-                    onScanPressed();
-                  }
-                },
-                child:
-                    Icon(!_isScanning ? Icons.bluetooth_searching : Icons.stop))
-            : null,
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat);
+          floatingActionButton: widget.isHome
+              ? FloatingActionButton(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.lightBlue,
+                  onPressed: () {
+                    if (_isScanning) {
+                      FlutterBluePlus.stopScan();
+                    } else {
+                      onScanPressed();
+                    }
+                  },
+                  child: Icon(
+                      !_isScanning ? Icons.bluetooth_searching : Icons.stop))
+              : null,
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat),
+    );
   }
 }

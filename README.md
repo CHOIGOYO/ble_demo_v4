@@ -1,16 +1,57 @@
 # ble_demo_v4
 
-A new Flutter project.
+iOS,AOS BLE 통신 테스트 앱
 
-## Getting Started
+## 개발 환경
 
-This project is a starting point for a Flutter application.
+```
+Doctor summary (to see all details, run flutter doctor -v):
+[✓] Flutter (Channel stable, 3.27.1, on macOS 15.2 24C101 darwin-arm64, locale ko-KR)
+[✓] Android toolchain - develop for Android devices (Android SDK version 35.0.0)
+[✓] Xcode - develop for iOS and macOS (Xcode 16.2)
+[✓] Chrome - develop for the web
+[✓] Android Studio (version 2024.2)
+[✓] IntelliJ IDEA Ultimate Edition (version 2024.2.4)
+[✓] IntelliJ IDEA Community Edition (version 2024.2.4)
+[✓] VS Code (version 1.96.2)
+[✓] Network resources
+• No issues found!
+```
 
-A few resources to get you started if this is your first Flutter project:
+## 안드로이드 권한 설정 (/android/app/src/main/AndroidManifest.xml)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```
+<!-- New Bluetooth permissions in Android 12
+https://developer.android.com/about/versions/12/features/bluetooth-permissions -->
+<uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+<!-- legacy for Android 11 or lower -->
+<uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+
+<!-- legacy for Android 9 or lower -->
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="28" />
+```
+
+## iOS 권한 설정 (/ios/Runner/Info.plist)
+
+```
+<dict>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>This app needs Bluetooth to function</string>
+	<key>UIBackgroundModes</key>
+	<array>
+    <string>bluetooth-central</string>
+	</array>
+    ...
+```
+
+## 기능
+
+1. 스캔
+2. 연결
+3. 연결 해제
+4. 구독(Receive data)
+5. 구독 해제
