@@ -1,4 +1,4 @@
-# ble_demo_v4
+# flutter_ble_demo_v4
 
 iOS,AOS BLE 통신 테스트 앱
 
@@ -55,3 +55,7 @@ https://developer.android.com/about/versions/12/features/bluetooth-permissions -
 3. 연결 해제
 4. 구독(Receive data)
 5. 구독 해제
+
+## 앱 미리보기
+https://github.com/user-attachments/assets/96e9b0dd-25c2-45bd-b2b4-37c25a2012e5
+
