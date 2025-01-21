@@ -4,7 +4,7 @@ iOS,AOS BLE 통신 테스트 앱
 
 ## 개발 환경
 
-```
+```dart
 Doctor summary (to see all details, run flutter doctor -v):
 [✓] Flutter (Channel stable, 3.27.1, on macOS 15.2 24C101 darwin-arm64, locale ko-KR)
 [✓] Android toolchain - develop for Android devices (Android SDK version 35.0.0)
@@ -20,7 +20,7 @@ Doctor summary (to see all details, run flutter doctor -v):
 
 ## 안드로이드 권한 설정 (/android/app/src/main/AndroidManifest.xml)
 
-```
+```kotlin
 <!-- New Bluetooth permissions in Android 12
 https://developer.android.com/about/versions/12/features/bluetooth-permissions -->
 <uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
@@ -37,7 +37,7 @@ https://developer.android.com/about/versions/12/features/bluetooth-permissions -
 
 ## iOS 권한 설정 (/ios/Runner/Info.plist)
 
-```
+```swift
 <dict>
     <key>NSBluetoothAlwaysUsageDescription</key>
     <string>This app needs Bluetooth to function</string>
